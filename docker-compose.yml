@@ -1,0 +1,28 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./auth:/etc/nginx/auth
+    depends_on:
+      - image-storage
+    networks:
+      - webnet
+
+  image-storage:
+    container_name: image-storage
+    build: .
+    # volumes:
+    #   - ./uploads:/app/uploads
+    expose:
+      - "8080"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+
+# volumes:

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+      }
+
+      div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        border-radius: 4px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      input[type="file"] {
+        margin-bottom: 10px;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+    <title>File Upload</title>
+  </head>
+
+  <script>
+    function submitForm(e) {
+      e.preventDefault();
+      const files = document.getElementById("files");
+      const formData = new FormData();
+      for (let i = 0; i < files.files.length; i++) {
+        formData.append("files", files.files[i]);
+      }
+      fetch("http://localhost:80/upload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => console.log(res))
+        .catch((err) => ("Error occured", err));
+    }
+  </script>
+
+  <body>
+    <div>
+      <form onsubmit="submitForm(event)">
+        <input type="file" name="files" id="files" multiple />
+        <button type="submit">Upload</button>
+      </form>
+    </div>
+  </body>
+</html>
