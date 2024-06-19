@@ -1,13 +1,18 @@
 import multer from "multer";
+import path from "path";
+import sanitize from "sanitize-filename";
 
-const dir = "./uploads";
+const filesDirectory = path.join(__dirname, "../uploads");
 
 const storage = multer.diskStorage({
   destination: (_req, _file, callback) => {
-    callback(null, dir);
+    callback(null, filesDirectory);
   },
   filename: (_req, file, callback) => {
-    callback(null, file.originalname);
+    const sanitizedFilename = sanitize(file.originalname)
+      .replace(/ /g, "_")
+      .replace(/[^\w.-]/g, "");
+    callback(null, Date.now() + "_" + sanitizedFilename);
   },
 });
 

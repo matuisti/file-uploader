@@ -1,79 +1,325 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <title>File Upload</title>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      async function submitForm(e) {
+        e.preventDefault();
+        const files = document.getElementById("files").files;
+        const formData = new FormData();
+        const uploadButton = document.getElementById("uploadButton");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const buttonText = document.getElementById("buttonText");
+        const errorLabel = document.getElementById("errorLabel");
+        const fileInput = document.getElementById("files");
+        const fileList = document.getElementById("fileList");
+
+        uploadButton.disabled = true;
+        loadingSpinner.classList.remove("hidden");
+        buttonText.textContent = "Ladataan...";
+        errorLabel.classList.add("hidden");
+
+        for (let i = 0; i < files.length; i++) {
+          formData.append("files", files[i]);
+        }
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            document.getElementById("fileList").innerHTML = "";
+            document.getElementById("files").value = "";
+            await loadGallery(); // Reload gallery after upload
+          } else {
+            console.error("Error occurred", response.statusText);
+            errorLabel.classList.remove("hidden");
+          }
+        } catch (err) {
+          console.error("Error occurred", err);
+          errorLabel.classList.remove("hidden");
+        } finally {
+          loadingSpinner.classList.add("hidden");
+          buttonText.textContent = "Lataa valitut kuvat";
+          uploadButton.disabled = true;
+          fileList.classList.toggle("hidden", fileInput.files.length === 0);
+        }
+      }
+
+      function getActiveTab() {
+        const tabs = document.querySelectorAll(".tab");
+        let activeTab = null;
+        tabs.forEach((tab, index) => {
+          if (tab.classList.contains("active")) {
+            activeTab = index;
+          }
+        });
+        return activeTab;
+      }
+
+      function handleTabClick(index) {
+        const tabs = document.querySelectorAll(".tab");
+        const panes = document.querySelectorAll(".tab-pane");
+        if (tabs.length === 0) {
+          console.error("Tabs or panes not found");
+          return;
+        }
+
+        tabs.forEach((t, i) => {
+          t.classList.remove(
+            "active",
+            "bg-blue-500",
+            "hover:bg-blue-600",
+            "text-white"
+          );
+          if (i === index) {
+            t.classList.add(
+              "active",
+              "bg-blue-500",
+              "hover:bg-blue-600",
+              "text-white"
+            );
+          }
+        });
+
+        panes.forEach((pane, i) => {
+          pane.classList.add("hidden");
+          if (i === index) {
+            pane.classList.remove("hidden");
+          }
+        });
+
+        if (index === 1) {
+          loadGallery();
+        }
+      }
+
+      function handleFileSelect(event) {
+        const files = event.target.files;
+        const fileList = document.getElementById("fileList");
+        const uploadButton = document.getElementById("uploadButton");
+        fileList.innerHTML = "";
+
+        for (let i = 0; i < files.length; i++) {
+          const listItem = document.createElement("li");
+          listItem.textContent = files[i].name;
+          fileList.appendChild(listItem);
+        }
+
+        fileList.classList.toggle("hidden", files.length === 0);
+        uploadButton.disabled = files.length === 0;
+      }
+
+      function adjustContainerHeight() {
+        const container = document.getElementById("container");
+        const galleryPane = document.getElementById("gallery");
+        const activeTab = getActiveTab();
+
+        const newHeight = window.innerHeight - 60;
+        if (window.innerHeight < 800) {
+          gallery.style.height = `${newHeight - 185}px`;
+          if (activeTab === 0) {
+            container.style.height = "100%";
+          } else {
+            container.style.height = `${newHeight}px`;
+          }
+
+        } else {
+          container.style.height = "100%";
+          gallery.style.height = `${newHeight - 190}px`;
+        }
+      }
+
+      window.addEventListener("resize", adjustContainerHeight);
+
+      async function loadGallery() {
+        const gallery = document.getElementById("gallery");
+        gallery.innerHTML = "";
+
+        try {
+          const response = await fetch("/files");
+          const files = await response.json();
+
+          files.forEach((file) => {
+            const img = document.createElement("img");
+            img.src = file.url;
+            img.alt = file.name;
+            img.classList.add("w-full", "h-auto", "object-cover", "rounded");
+            const imgContainer = document.createElement("div");
+            imgContainer.classList.add("p-1", "md:p-2");
+            imgContainer.appendChild(img);
+            gallery.appendChild(imgContainer);
+          });
+        } catch (err) {
+          console.error("Error loading gallery", err);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const fileInput = document.getElementById("files");
+        const uploadButton = document.getElementById("uploadButton");
+        const fileList = document.getElementById("fileList");
+        fileInput.addEventListener("change", handleFileSelect);
+        uploadButton.disabled = fileInput.files.length === 0;
+        fileList.classList.toggle("hidden", fileInput.files.length === 0);
+
+        adjustContainerHeight();
+      });
+    </script>
+
     <style>
       body {
-        font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 100%;
         background-color: #f0f0f0;
       }
-
-      div {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        border-radius: 4px;
-        background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      .spinner {
+        border-top-color: transparent;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        border-left-color: white;
       }
-
-      form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
+      #uploadButton:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
       }
-
-      input[type="file"] {
-        margin-bottom: 10px;
-      }
-
-      button {
-        width: 100%;
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background-color: #0056b3;
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        overflow-y: auto;
       }
     </style>
-    <title>File Upload</title>
   </head>
 
-  <script>
-    function submitForm(e) {
-      e.preventDefault();
-      const files = document.getElementById("files");
-      const formData = new FormData();
-      for (let i = 0; i < files.files.length; i++) {
-        formData.append("files", files.files[i]);
-      }
-      fetch("http://localhost:80/upload", {
-        method: "POST",
-        body: formData,
-      })
-        .then((res) => console.log(res))
-        .catch((err) => ("Error occured", err));
-    }
-  </script>
-
   <body>
-    <div>
-      <form onsubmit="submitForm(event)">
-        <input type="file" name="files" id="files" multiple />
-        <button type="submit">Upload</button>
-      </form>
+    <div
+      id="container"
+      class="flex flex-col gap-8 w-full max-w-4xl m-8 p-6 bg-white rounded-lg"
+    >
+      <ul class="flex gap-2">
+        <li class="flex-1">
+          <button
+            onclick="handleTabClick(0)"
+            id="tab-0"
+            class="tab w-full text-center block rounded text-blue-500 py-2 px-4 focus:outline-none active bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            Lisää kuvia
+          </button>
+        </li>
+        <li class="flex-1">
+          <button
+            onclick="handleTabClick(1)"
+            id="tab-1"
+            class="tab w-full text-center block rounded text-blue-500 py-2 px-4"
+          >
+            Kuvagalleria
+          </button>
+        </li>
+      </ul>
+
+      <div class="flex w-full">
+        <div class="tab-pane flex w-full flex-col gap-8 active">
+          <h1 class="text-2xl font-bold text-gray-700">
+            Lisää kuvia galleriaan
+          </h1>
+
+          <div class="flex items-center justify-center w-full min-w-full">
+            <label
+              for="files"
+              class="flex p-3 flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+            >
+              <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg
+                  class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 16"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                  />
+                </svg>
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span class="font-semibold">Klikkaa ladataksesi</span> tai
+                  pudota kuva tähän
+                </p>
+              </div>
+              <input
+                id="files"
+                type="file"
+                name="files"
+                class="hidden"
+                multiple
+                accept="image/*"
+              />
+            </label>
+          </div>
+          <ul id="fileList" class="list-disc pl-5 hidden"></ul>
+
+          <div
+            id="errorLabel"
+            class="hidden bg-orange-100 rounded-lg border-orange-500 text-orange-700 p-4"
+            role="alert"
+          >
+            <p class="font-bold">Hupsis!</p>
+            <p>Lataus epäonnistui, yritä uudelleen.</p>
+          </div>
+
+          <button
+            id="uploadButton"
+            onclick="submitForm(event)"
+            class="bg-blue-500 text-sm hover:bg-blue-600 py-2 px-4 font-semibold rounded-lg inline-flex items-center justify-center text-white w-full relative"
+            disabled
+          >
+            <svg
+              id="loadingSpinner"
+              class="hidden animate-spin h-5 w-5 mr-3 text-white spinner"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span id="buttonText">Lataa valitut kuvat</span>
+          </button>
+        </div>
+
+        <div
+          class="tab-pane hidden flex w-full flex-col gap-8"
+          id="galleryPane"
+        >
+          <h1 class="text-2xl font-bold text-gray-700">Kuvagalleria</h1>
+          <div id="gallery" class="gallery"></div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

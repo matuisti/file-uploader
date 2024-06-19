@@ -15,8 +15,10 @@ services:
   image-storage:
     container_name: image-storage
     build: .
-    # volumes:
-    #   - ./uploads:/app/uploads
+    volumes:
+       - ./uploads:/app/uploads
+    environment:
+      - UPLOAD_URL=http://localhost/upload
     expose:
       - "8080"
     networks:
@@ -25,4 +27,5 @@ services:
 networks:
   webnet:
 
-# volumes:
+volumes:
+  uploads:

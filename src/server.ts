@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { upload } from "./storageService";
 import { storageController } from "./storageController";
 
 const app = express();
