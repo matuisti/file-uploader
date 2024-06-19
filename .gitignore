@@ -8,6 +8,8 @@
 /logs
 /uploads
 
+/auth/.htpasswd
+
 # misc
 .DS_Store
 .env
