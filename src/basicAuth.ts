@@ -11,9 +11,9 @@ export const authentication = (req, res, next) => {
   const authheader = req.headers.authorization;
 
   if (!authheader) {
-    const err = new ErrorResponse("You are not authenticated!", 401);
+    const err = new ErrorResponse("Päivitä sivu ja kirjaudu sisään", 401);
     res.setHeader("WWW-Authenticate", "Basic");
-    return next(err);
+    return res.status(401).json({ message: err.message });
   }
 
   const auth = Buffer.from(authheader.split(" ")[1], "base64")
@@ -28,8 +28,8 @@ export const authentication = (req, res, next) => {
   if (user == userSecret && pass == passSecret) {
     next();
   } else {
-    const err = new ErrorResponse("You are not authenticated!", 401);
+    const err = new ErrorResponse("Päivitä sivu ja kirjaudu sisään", 401);
     res.setHeader("WWW-Authenticate", "Basic");
-    return next(err);
+    return res.status(401).json({ message: err.message });
   }
 };

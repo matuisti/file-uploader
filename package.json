@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "tsc && node --env-file=.env build/server.js",
+    "prod": "node build/server.js",
     "build": "tsc --build && npm run postbuild",
     "postbuild": "cp -r src/views build"
   },
