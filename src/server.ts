@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { storageController } from "./storageController";
+import { authentication } from "./basicAuth";
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.set("views", path.join(__dirname, "/views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(authentication);
 app.use("", storageController);
 
 app.listen(8080, () => {
