@@ -9,6 +9,7 @@
 /uploads
 
 /auth/.htpasswd
+/certbot
 
 # misc
 .DS_Store
