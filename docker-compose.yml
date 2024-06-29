@@ -1,6 +1,7 @@
 services:
   nginx:
     container_name: nginx
+    restart: unless-stopped
     image: nginx:latest
     ports:
       - 80:80
@@ -17,6 +18,7 @@ services:
 
   image-storage:
     container_name: image-storage
+    restart: unless-stopped
     build: .
     volumes:
        - ./uploads:/app/uploads

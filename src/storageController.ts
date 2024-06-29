@@ -27,10 +27,12 @@ storageController.get("/files", (req, res) => {
       return res.status(500).send("Internal Server Error");
     }
 
-    const fileList = files.map((file) => ({
-      name: file,
-      url: `/uploads/${file}`,
-    }));
+    const fileList = files
+      .map((file) => ({
+        name: file,
+        url: `/uploads/${file}`,
+      }))
+      .reverse();
 
     res.json(fileList);
   });
