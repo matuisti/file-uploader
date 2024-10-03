@@ -1,0 +1,32 @@
+services:
+  nginx:
+    container_name: nginx
+    restart: unless-stopped
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf
+      - ./auth:/etc/nginx/auth
+    depends_on:
+      - image-storage
+    networks:
+      - webnet
+
+  image-storage:
+    container_name: image-storage
+    restart: unless-stopped
+    build: .
+    volumes:
+       - ./uploads:/app/uploads
+    ports:
+      - 8080:8080
+    networks:
+      - webnet
+
+networks:
+  webnet:
+
+volumes:
+  uploads:
